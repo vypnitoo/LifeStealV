@@ -1,0 +1,22 @@
+name: LifeStealV
+version: ${project.version}
+main: com.vypnito.lifestealV.LifeStealV
+api-version: '1.21'
+authors: [ Vypnito ]
+description: A Lifesteal SMP plugin with configurable options and craftable hearts.
+commands:
+    lifesteal:
+        description: Main command for the LifeStealV plugin.
+        usage: "/lifesteal <sub-command>"
+        aliases: [ls, lsv]
+    revive:
+        description: Revives an eliminated player using a Heart of Revival.
+        usage: "/revive <player>"
+        permission: lifestealv.command.revive
+permissions:
+    lifestealv.command.reload:
+        description: Allows reloading the plugin's configuration.
+        default: op
+    lifestealv.command.revive:
+        description: Allows using the /revive command.
+        default: op

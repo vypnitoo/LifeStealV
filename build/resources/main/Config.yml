@@ -1,0 +1,39 @@
+# === Heart Settings ===
+
+# The amount of health points (1 heart = 2 HP) a player starts with on their first join.
+# Default: 20 (10 hearts)
+start-hearts: 20
+
+# The maximum health points a player can have.
+# Default: 40 (20 hearts) 1=1/2 heart
+max-hearts: 40
+
+# The amount of health points gained for killing a player.
+# Default: 2 (1 heart)
+hearts-per-kill: 2
+
+# === Death Settings ===
+
+# Should a player lose a heart on natural death (fall, lava, mobs, etc.)?
+# true = yes, false = no
+lose-heart-on-natural-death: false
+
+# The amount of health points lost on a natural death.
+# Ignored if 'lose-heart-on-natural-death' is false.
+hearts-lost-on-natural-death: 2
+
+# What happens when a player runs out of hearts?
+# Options: "BAN", "SPECTATOR"
+elimination-action: "SPECTATOR"
+
+# === Item Behavior ===
+
+# If a killer is already at max health, should they receive a heart item instead?
+# true = yes, false = no
+drop-item-if-max-hearts: true
+
+# === Revival Settings ===
+
+# The amount of health points a player has after being revived.
+# Default: 10 (5 hearts)
+revive-hearts: 10
