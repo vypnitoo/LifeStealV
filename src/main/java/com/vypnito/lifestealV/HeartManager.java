@@ -9,7 +9,6 @@ import java.util.Arrays;
 
 public class HeartManager {
 
-    // Unique keys to identify our custom items
     public static final NamespacedKey HEART_ITEM_KEY = new NamespacedKey("lifestealv", "heart_item");
     public static final NamespacedKey REVIVE_ITEM_KEY = new NamespacedKey("lifestealv", "revive_item");
 
@@ -17,10 +16,7 @@ public class HeartManager {
         ItemStack heartItem = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = heartItem.getItemMeta();
         meta.setDisplayName("§cHeart");
-        meta.setLore(Arrays.asList(
-                "§7A fragment of a life.",
-                "§cRight-click to consume and gain one heart."
-        ));
+        meta.setLore(Arrays.asList("§7A fragment of a life.", "§cRight-click to consume and gain one heart."));
         meta.getPersistentDataContainer().set(HEART_ITEM_KEY, PersistentDataType.BYTE, (byte) 1);
         heartItem.setItemMeta(meta);
         return heartItem;
@@ -35,10 +31,7 @@ public class HeartManager {
         ItemStack reviveItem = new ItemStack(Material.BEACON);
         ItemMeta meta = reviveItem.getItemMeta();
         meta.setDisplayName("§bHeart of Revival");
-        meta.setLore(Arrays.asList(
-                "§7Powerful enough to restore a lost soul.",
-                "§bHold this and use /revive <player>."
-        ));
+        meta.setLore(Arrays.asList("§7Powerful enough to restore a lost soul.", "§bHold this and use /revive <player>."));
         meta.getPersistentDataContainer().set(REVIVE_ITEM_KEY, PersistentDataType.BYTE, (byte) 1);
         reviveItem.setItemMeta(meta);
         return reviveItem;

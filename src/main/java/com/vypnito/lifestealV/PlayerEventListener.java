@@ -13,63 +13,81 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
-
 import java.util.Objects;
 
 public class PlayerEventListener implements Listener {
 
     private final LifeStealV plugin;
+    private final MessageManager msg;
 
     public PlayerEventListener(LifeStealV plugin) {
         this.plugin = plugin;
+        this.msg = plugin.getMessageManager();
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        // Set initial health for first-time players
         if (!player.hasPlayedBefore()) {
-            double startHearts = plugin.getConfig().getDouble("start-hearts");
+            double startHearts = plugin.getConfig().getDouble("start-hearts", 20);
             Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(startHearts);
-            player.setHealth(startHearts); // Also set current health
+            player.setHealth(startHearts);
+        }
+
+        // Send update notification to players with permission
+        if (player.hasPermission("lifestealv.update.notify") && plugin.isUpdateAvailable()) {
+            // Delay message slightly to prevent it from being lost in other join messages
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                player.sendMessage(msg.getMessage("update-available",
+                        new MessageManager.Placeholder("new_version", plugin.getNewVersion()),
+                        new MessageManager.Placeholder("current_version", plugin.getDescription().getVersion())
+                ));
+            }, 40L); // 2-second delay
         }
     }
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        // Minecraft resets max health on death, so we need to re-apply it on respawn.
         Player player = event.getPlayer();
+        // Re-apply max health on respawn, as Minecraft sometimes resets it.
         double currentMax = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
-        // A small delay ensures the attribute is applied correctly after respawning.
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(currentMax);
-        }, 1L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(currentMax), 1L);
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
+        // We only care about right-clicks
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
+        Player player = event.getPlayer();
         ItemStack item = event.getItem();
+        if (item == null) return;
+
+        // Handle Heart item consumption
         if (HeartManager.isHeartItem(item)) {
-            event.setCancelled(true); // Prevent default behavior (like placing a block)
-
-            Player player = event.getPlayer();
+            event.setCancelled(true);
             FileConfiguration config = plugin.getConfig();
-
             double maxHearts = config.getDouble("max-hearts");
-            double heartsPerKill = config.getDouble("hearts-per-kill");
             double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
 
-            if (currentMaxHealth < maxHearts) {
-                double newMaxHealth = Math.min(currentMaxHealth + heartsPerKill, maxHearts);
-                Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(newMaxHealth);
-                player.sendMessage("§aYou have consumed a heart and gained more health!");
-                item.setAmount(item.getAmount() - 1); // Consume one item
-            } else {
-                player.sendMessage("§cYou are already at the maximum number of hearts!");
+            if (currentMaxHealth >= maxHearts) {
+                player.sendMessage(msg.getMessage("heart-max-health"));
+                return;
             }
+
+            double heartsToGain = config.getDouble("hearts-per-kill", 2);
+            double newMaxHealth = Math.min(currentMaxHealth + heartsToGain, maxHearts);
+            Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(newMaxHealth);
+            player.sendMessage(msg.getMessage("heart-consumed"));
+            item.setAmount(item.getAmount() - 1);
+            return; // Stop processing to prevent other actions
+        }
+
+        // Handle Revive Item right-click to open the GUI
+        if (HeartManager.isReviveItem(item)) {
+            event.setCancelled(true);
+            plugin.getRevivalGuiManager().openGui(player, 1);
         }
     }
 
@@ -78,48 +96,37 @@ public class PlayerEventListener implements Listener {
         Player victim = event.getEntity();
         Player killer = victim.getKiller();
         FileConfiguration config = plugin.getConfig();
-
-        double heartsPerKill = config.getDouble("hearts-per-kill");
         double victimCurrentMaxHealth = Objects.requireNonNull(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
-        double victimNewMaxHealth = victimCurrentMaxHealth - heartsPerKill;
+        double heartsToLose;
 
-        // Player was killed by another player
         if (killer != null && killer != victim) {
-            handlePlayerKill(killer, victim, victimNewMaxHealth, config);
-        } else { // Natural death
-            if (config.getBoolean("lose-heart-on-natural-death")) {
-                double heartsLost = config.getDouble("hearts-lost-on-natural-death");
-                victimNewMaxHealth = victimCurrentMaxHealth - heartsLost;
-                handleHeartLoss(victim, victimNewMaxHealth, config);
+            heartsToLose = config.getDouble("hearts-per-kill", 2);
+            handlePlayerKill(killer, victim, victimCurrentMaxHealth - heartsToLose, config);
+        } else {
+            if (config.getBoolean("lose-heart-on-natural-death", true)) {
+                heartsToLose = config.getDouble("hearts-lost-on-natural-death", 2);
+                handleHeartLoss(victim, victimCurrentMaxHealth - heartsToLose, config);
             }
         }
     }
 
     private void handlePlayerKill(Player killer, Player victim, double victimNewMaxHealth, FileConfiguration config) {
-        double heartsPerKill = config.getDouble("hearts-per-kill");
-
-        // Handle victim
         handleHeartLoss(victim, victimNewMaxHealth, config);
-
-        // Handle killer
         double killerCurrentMaxHealth = Objects.requireNonNull(killer.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
         double maxHearts = config.getDouble("max-hearts");
 
         if (killerCurrentMaxHealth < maxHearts) {
-            double killerNewMaxHealth = Math.min(killerCurrentMaxHealth + heartsPerKill, maxHearts);
+            double heartsToGain = config.getDouble("hearts-per-kill", 2);
+            double killerNewMaxHealth = Math.min(killerCurrentMaxHealth + heartsToGain, maxHearts);
             Objects.requireNonNull(killer.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(killerNewMaxHealth);
-            killer.sendMessage("§aYou have stolen a heart from " + victim.getName() + "!");
+            killer.sendMessage(msg.getMessage("heart-stolen", new MessageManager.Placeholder("player", victim.getName())));
         } else {
-            // Killer is at max health, give them an item instead
-            if (config.getBoolean("drop-item-if-max-hearts")) {
+            if (config.getBoolean("drop-item-if-max-hearts", true)) {
                 ItemStack heartItem = HeartManager.createHeartItem();
-                // Try to add to inventory, if full, drop on the ground
                 if (killer.getInventory().firstEmpty() == -1) {
                     killer.getWorld().dropItemNaturally(killer.getLocation(), heartItem);
-                    killer.sendMessage("§cYou are at max health! A heart was dropped on the ground.");
                 } else {
                     killer.getInventory().addItem(heartItem);
-                    killer.sendMessage("§cYou are at max health! A heart has been added to your inventory.");
                 }
             }
         }
@@ -127,30 +134,28 @@ public class PlayerEventListener implements Listener {
 
     private void handleHeartLoss(Player victim, double newMaxHealth, FileConfiguration config) {
         if (newMaxHealth <= 0) {
-            // Player is eliminated
-            Objects.requireNonNull(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(2); // Set to 1 heart to avoid issues
+            // Set to 1 heart before elimination to prevent issues
+            Objects.requireNonNull(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(2);
             performElimination(victim, config);
         } else {
-            // Player just loses a heart
             Objects.requireNonNull(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(newMaxHealth);
-            victim.sendMessage("§cYou have lost a heart!");
+            victim.sendMessage(msg.getMessage("heart-lost"));
         }
     }
 
     private void performElimination(Player victim, FileConfiguration config) {
         String action = config.getString("elimination-action", "SPECTATOR").toUpperCase();
-        plugin.getServer().broadcastMessage("§c" + victim.getName() + " has run out of hearts and has been eliminated!");
-
-        // Run on the main thread to ensure API calls are safe
+        Bukkit.broadcastMessage(msg.getMessage("elimination-broadcast", new MessageManager.Placeholder("player", victim.getName())));
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             switch (action) {
                 case "BAN":
-                    victim.kickPlayer("You have run out of hearts and have been eliminated.");
+                    victim.kickPlayer(msg.getMessage("elimination-broadcast", new MessageManager.Placeholder("player", victim.getName())));
                     Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(victim.getName(), "Eliminated from the Lifesteal SMP", null, null);
                     break;
                 case "SPECTATOR":
                 default:
-                    victim.setGameMode(GameMode.SPECTATOR);
+                    victim.setGameMode(GameMode.SURVIVAL); // Spectator can be buggy, let's try survival
+                    victim.setHealth(0);
                     break;
             }
         });

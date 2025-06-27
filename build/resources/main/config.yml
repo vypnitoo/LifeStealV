@@ -1,0 +1,23 @@
+# 1 = 0.5 hearts in game
+# === Heart Settings ===
+start-hearts: 20
+max-hearts: 40
+hearts-per-kill: 2
+
+# === Death Settings ===
+lose-heart-on-natural-death: true
+hearts-lost-on-natural-death: 2
+elimination-action: "SPECTATOR" # Options: "BAN", "SPECTATOR"
+
+# === Item Behavior ===
+drop-item-if-max-hearts: true
+
+# === Revival Settings ===
+revive-hearts: 10
+
+# === Withdrawal Settings ===
+minimum-health-to-withdraw: 4
+
+update-checker:
+  # Set to true to check for new versions on SpigotMC when the server starts.
+  enabled: true

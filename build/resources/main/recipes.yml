@@ -1,0 +1,32 @@
+# Here you can edit or create new crafting recipes for LifeStealV items.
+#
+# Structure:
+# shape: 3 rows that define the recipe's shape in the crafting grid. A space means an empty slot.
+# ingredients: Defines which material corresponds to which character in the 'shape'.
+#              Use the official Material names from Minecraft (e.g., 'DIAMOND_BLOCK').
+# Special Items:
+#   'LIFESTEAL_HEART_ITEM': Use this to represent the custom "Heart" item as an ingredient.
+
+heart_recipe:
+  enabled: true
+  shape:
+    - 'GGG'
+    - 'ONO'
+    - 'DDD'
+  ingredients:
+    G: 'GOLD_BLOCK'
+    O: 'OBSIDIAN'
+    N: 'NETHER_STAR'
+    D: 'DIAMOND_BLOCK'
+
+revive_recipe:
+  enabled: true
+  shape:
+    - 'DBD'
+    - 'OHO'
+    - 'DBD'
+  ingredients:
+    D: 'DIAMOND'
+    B: 'BEACON'
+    O: 'OBSIDIAN'
+    H: 'LIFESTEAL_HEART_ITEM' # This is our custom "Heart" item

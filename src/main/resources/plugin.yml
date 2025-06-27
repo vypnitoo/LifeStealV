@@ -1,22 +1,50 @@
 name: LifeStealV
-version: ${project.version}
+version: '1.4'
 main: com.vypnito.lifestealV.LifeStealV
 api-version: '1.21'
 authors: [ Vypnito ]
 description: A Lifesteal SMP plugin with configurable options and craftable hearts.
+
 commands:
     lifesteal:
         description: Main command for the LifeStealV plugin.
         usage: "/lifesteal <sub-command>"
         aliases: [ls, lsv]
     revive:
-        description: Revives an eliminated player using a Heart of Revival.
-        usage: "/revive <player>"
+        description: Opens a GUI to revive an eliminated player.
+        usage: "/revive"
         permission: lifestealv.command.revive
+    withdraw:
+        description: Withdraws one heart from your max health in exchange for a heart item.
+        usage: "/withdraw"
+        permission: lifestealv.command.withdraw
+    giveheart:
+        description: Gives a player a heart or revive item.
+        usage: "/giveheart <player> [type] [amount]"
+        permission: lifestealv.command.giveheart
+
 permissions:
     lifestealv.command.reload:
         description: Allows reloading the plugin's configuration.
         default: op
     lifestealv.command.revive:
         description: Allows using the /revive command.
+        default: op
+    lifestealv.command.check:
+        description: Allows checking your own heart count.
+        default: true
+    lifestealv.command.check.others:
+        description: Allows checking other players' heart count.
+        default: op
+    lifestealv.command.withdraw:
+        description: Allows using the /withdraw command.
+        default: true
+    lifestealv.command.giveheart:
+        description: Allows using the /giveheart command.
+        default: op
+    lifestealv.command.editrecipe:
+        description: Allows opening the recipe editor GUI.
+        default: op
+    lifestealv.update.notify:
+        description: Receives a notification in chat when a new update is available.
         default: op

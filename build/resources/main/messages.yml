@@ -1,0 +1,56 @@
+# General Messages
+no-permission: "&cYou do not have permission to use this command."
+player-not-found: "&cPlayer '%player%' not found or is offline."
+player-only-command: "This command can only be used by players."
+
+# Lifesteal Commands
+lifesteal-help-header: "&6--- LifeStealV Commands ---"
+lifesteal-help-check: "&e/%label% check [player] &7- Check heart count."
+lifesteal-help-reload: "&e/%label% reload &7- Reload the config."
+lifesteal-help-editrecipe: "&e/%label% editrecipe <recipe_name> &7- Opens the recipe editor."
+lifesteal-reload-success: "&aLifeStealV configuration has been reloaded successfully!"
+check-hearts-self: "&aYour hearts: &f%current% / %max%"
+check-hearts-other: "&a%player%'s hearts: &f%current% / %max%"
+
+# Revive Command
+revive-usage: "&cUsage: /revive <player>"
+revive-no-item: "&cYou must be holding a Heart of Revival to use this command."
+revive-not-eliminated: "&c%player% is not eliminated and cannot be revived."
+revive-success-target: "&bYou have been revived by %player%!"
+revive-broadcast: "&b%target% has been brought back to life by the compassionate %reviver%!"
+
+# Withdraw Command
+withdraw-inventory-full: "&cYour inventory is full! Make some space to withdraw a heart."
+withdraw-not-enough-hearts: "&cYou do not have enough hearts to withdraw."
+withdraw-success: "&aYou have withdrawn one heart."
+
+# GiveHeart Command
+giveheart-usage: "&cUsage: /giveheart <player> [heart|revive] [amount]"
+giveheart-invalid-item: "&cInvalid item type. Use 'heart' or 'revive'."
+giveheart-invalid-amount: "&cAmount must be a number between 1 and 64."
+giveheart-inventory-full: "&c%player%'s inventory is full. Could not give items."
+giveheart-success-sender: "&aYou have given %amount% %item_type% item(s) to %player%."
+giveheart-success-receiver: "&aYou have received %amount% %item_type% item(s) from %sender%."
+
+# Recipe Editor GUI
+gui-recipe-editor-title: "Recipe Editor: %recipe%"
+gui-recipe-saved: "&aRecipe '%recipe%' has been saved and reloaded!"
+gui-unknown-recipe: "&cRecipe with the name '%recipe%' was not found in recipes.yml."
+gui-edit-usage: "&cUsage: /lifesteal editrecipe <recipe_name>"
+
+# Plugin Actions
+heart-consumed: "&aYou have consumed a heart and gained more health!"
+heart-max-health: "&cYou are already at the maximum number of hearts!"
+heart-stolen: "&aYou have stolen a heart from %player%!"
+heart-lost: "&cYou have lost a heart!"
+elimination-broadcast: "&c%player% has run out of hearts and has been eliminated!"
+
+# Revive GUI
+revive-gui-title: "Revive a Player (Page %page%/%total_pages%)"
+revive-gui-no-one: "&cThere is currently no one to revive."
+revive-gui-skull-lore: "&7Click to revive this player."
+revive-gui-next-page: "&aNext Page ->"
+revive-gui-prev-page: "&c<- Previous Page"
+
+# Update Checker
+update-available: "&aA new version of LifeStealV (&b%new_version%&a) is available! You are on &c%current_version%&a."
