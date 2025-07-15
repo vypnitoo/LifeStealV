@@ -20,8 +20,6 @@ public class GuiListener implements Listener {
 	private final LifeStealV plugin;
 	private final RevivalGuiManager revivalGuiManager;
 	private final RecipeManager recipeManager;
-
-	// Tuto sadu znovu přidáváme pro sledování hráčů v editoru receptů
 	public static final Set<UUID> playersInEditor = new HashSet<>();
 	private static final int[] CRAFTING_SLOTS = {10, 11, 12, 19, 20, 21, 28, 29, 30};
 
@@ -37,37 +35,27 @@ public class GuiListener implements Listener {
 
 		String title = event.getView().getTitle();
 		MessageManager msg = plugin.getMessageManager();
-
-		// --- Handle Revival GUI ---
 		String revivePrefix = msg.getMessage("revive-gui-title").split(" ")[0];
 		if (title.startsWith(revivePrefix)) {
-			// ... (logika pro Revival GUI zůstává stejná)
 			return;
 		}
 
-		// --- Handle Recipe Editor GUI ---
 		String recipePrefix = msg.getMessage("gui-recipe-editor-title").split(" ")[0];
 		if (title.startsWith(recipePrefix)) {
 			Player player = (Player) event.getWhoClicked();
 			ItemStack clickedItem = event.getCurrentItem();
-
-			// Allow placing items in crafting grid, but block taking items from result slot etc.
 			if (event.getSlot() == 24 || (clickedItem != null && clickedItem.getType().name().endsWith("STAINED_GLASS_PANE"))) {
 				event.setCancelled(true);
 			}
-
-			// Handle button clicks
 			if (clickedItem != null) {
-				if (clickedItem.getType() == Material.LIME_STAINED_GLASS_PANE) { // Save button
+				if (clickedItem.getType() == Material.LIME_STAINED_GLASS_PANE) { 
 					event.setCancelled(true);
 					String recipeName = title.substring(title.indexOf(":") + 2);
-					// On successful save, clear items from the grid and then close
 					recipeManager.saveRecipeFromGui(player, event.getInventory(), recipeName);
 					clearCraftingGrid(event.getInventory());
 					player.closeInventory();
-				} else if (clickedItem.getType() == Material.RED_STAINED_GLASS_PANE) { // Cancel button
+				} else if (clickedItem.getType() == Material.RED_STAINED_GLASS_PANE) {
 					event.setCancelled(true);
-					// On cancel, clear grid and return items before closing
 					returnItemsAndClearGrid(player, event.getInventory());
 					player.closeInventory();
 				}
@@ -81,17 +69,13 @@ public class GuiListener implements Listener {
 		UUID playerUuid = player.getUniqueId();
 		Inventory inventory = event.getInventory();
 		String title = event.getView().getTitle();
-
-		// Cleanup for Revival GUI
 		revivalGuiManager.getOpenPages().remove(playerUuid);
 
-		// Cleanup for Recipe Editor GUI (if closed via Esc, etc.)
 		String recipePrefix = plugin.getMessageManager().getMessage("gui-recipe-editor-title").split(" ")[0];
 		if (title.startsWith(recipePrefix) && playersInEditor.contains(playerUuid)) {
 			returnItemsAndClearGrid(player, inventory);
 		}
 
-		// Always remove from editor tracking on close
 		playersInEditor.remove(playerUuid);
 	}
 
