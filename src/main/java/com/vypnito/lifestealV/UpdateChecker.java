@@ -17,8 +17,6 @@ public class UpdateChecker {
 		this.plugin = plugin;
 		this.resourceId = resourceId;
 	}
-
-	// This method runs asynchronously to avoid lagging the server
 	public void getLatestVersion(Consumer<String> consumer) {
 		Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
 			try (InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + this.resourceId).openStream();
