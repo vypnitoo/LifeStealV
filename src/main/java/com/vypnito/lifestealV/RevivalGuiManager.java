@@ -16,7 +16,6 @@ public class RevivalGuiManager {
 
 	private final LifeStealV plugin;
 	private final MessageManager msg;
-	// We use this map to remember which page a player is viewing
 	private final Map<UUID, Integer> openPages = new HashMap<>();
 
 	public RevivalGuiManager(LifeStealV plugin) {
@@ -40,8 +39,6 @@ public class RevivalGuiManager {
 				new MessageManager.Placeholder("total_pages", String.valueOf(totalPages))
 		);
 		Inventory gui = Bukkit.createInventory(null, 54, title);
-
-		// Add player heads
 		int startIndex = (page - 1) * 45;
 		for (int i = 0; i < 45 && (startIndex + i) < eliminated.size(); i++) {
 			OfflinePlayer target = eliminated.get(startIndex + i);
@@ -51,14 +48,12 @@ public class RevivalGuiManager {
 			meta.setOwningPlayer(target);
 			meta.setDisplayName("§b" + target.getName());
 			meta.setLore(Collections.singletonList(msg.getMessage("revive-gui-skull-lore")));
-			// Store the target's UUID in the item itself, so we know who to revive
 			meta.getPersistentDataContainer().set(HeartManager.REVIVE_ITEM_KEY, PersistentDataType.STRING, target.getUniqueId().toString());
 
 			skull.setItemMeta(meta);
 			gui.setItem(i, skull);
 		}
 
-		// Add pagination controls
 		if (page > 1) {
 			gui.setItem(45, createGuiItem(Material.ARROW, msg.getMessage("revive-gui-prev-page")));
 		}
@@ -77,7 +72,6 @@ public class RevivalGuiManager {
 		}
 
 		OfflinePlayer target = Bukkit.getOfflinePlayer(UUID.fromString(targetUuid));
-		// Consume the item
 		reviver.getInventory().getItemInMainHand().setAmount(reviver.getInventory().getItemInMainHand().getAmount() - 1);
 
 		double reviveHearts = plugin.getConfig().getDouble("revive-hearts", 10.0);
@@ -93,10 +87,6 @@ public class RevivalGuiManager {
 			onlineTarget.setHealth(reviveHearts);
 			onlineTarget.setGameMode(GameMode.SURVIVAL);
 		}
-
-		// This part needs a better implementation for offline players, for now it will only set their health if they log in.
-		// A persistent storage for health would be needed for a perfect offline revival.
-
 		Bukkit.broadcastMessage(msg.getMessage("revive-broadcast",
 				new MessageManager.Placeholder("target", target.getName()),
 				new MessageManager.Placeholder("reviver", reviver.getName())
@@ -110,7 +100,7 @@ public class RevivalGuiManager {
 
 		if (eliminationAction.equals("BAN")) {
 			eliminated.addAll(Bukkit.getBannedPlayers());
-		} else { // SPECTATOR
+		} else { 
 			eliminated.addAll(Bukkit.getOnlinePlayers().stream()
 					.filter(p -> p.getGameMode() == GameMode.SPECTATOR)
 					.collect(Collectors.toList()));
