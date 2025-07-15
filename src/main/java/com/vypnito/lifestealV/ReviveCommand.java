@@ -25,7 +25,6 @@ public class ReviveCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        // The command now just opens the GUI on page 1
         plugin.getRevivalGuiManager().openGui(player, 1);
         return true;
     }
