@@ -28,43 +28,35 @@ public class PlayerEventListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        // Set initial health for first-time players
         if (!player.hasPlayedBefore()) {
             double startHearts = plugin.getConfig().getDouble("start-hearts", 20);
             Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(startHearts);
             player.setHealth(startHearts);
         }
-
-        // Send update notification to players with permission
         if (player.hasPermission("lifestealv.update.notify") && plugin.isUpdateAvailable()) {
-            // Delay message slightly to prevent it from being lost in other join messages
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 player.sendMessage(msg.getMessage("update-available",
                         new MessageManager.Placeholder("new_version", plugin.getNewVersion()),
                         new MessageManager.Placeholder("current_version", plugin.getDescription().getVersion())
                 ));
-            }, 40L); // 2-second delay
+            }, 40L);
         }
     }
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        // Re-apply max health on respawn, as Minecraft sometimes resets it.
         double currentMax = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(currentMax), 1L);
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // We only care about right-clicks
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         if (item == null) return;
-
-        // Handle Heart item consumption
         if (HeartManager.isHeartItem(item)) {
             event.setCancelled(true);
             FileConfiguration config = plugin.getConfig();
@@ -81,10 +73,8 @@ public class PlayerEventListener implements Listener {
             Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(newMaxHealth);
             player.sendMessage(msg.getMessage("heart-consumed"));
             item.setAmount(item.getAmount() - 1);
-            return; // Stop processing to prevent other actions
+            return;
         }
-
-        // Handle Revive Item right-click to open the GUI
         if (HeartManager.isReviveItem(item)) {
             event.setCancelled(true);
             plugin.getRevivalGuiManager().openGui(player, 1);
@@ -134,7 +124,6 @@ public class PlayerEventListener implements Listener {
 
     private void handleHeartLoss(Player victim, double newMaxHealth, FileConfiguration config) {
         if (newMaxHealth <= 0) {
-            // Set to 1 heart before elimination to prevent issues
             Objects.requireNonNull(victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(2);
             performElimination(victim, config);
         } else {
@@ -154,7 +143,7 @@ public class PlayerEventListener implements Listener {
                     break;
                 case "SPECTATOR":
                 default:
-                    victim.setGameMode(GameMode.SURVIVAL); // Spectator can be buggy, let's try survival
+                    victim.setGameMode(GameMode.SURVIVAL);
                     victim.setHealth(0);
                     break;
             }
